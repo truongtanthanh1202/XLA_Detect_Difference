@@ -38,7 +38,6 @@ def CreateImage(path, level, limit):
     Limit = limit
     print("Min - Max: " + str(minn) + " " + str(maxx))
     print("Limit: " + str(Limit))
-
     ####
 
     def myFunc(e):

@@ -50,6 +50,6 @@ def DetectDifference():
     source = np.hstack((imgA, x, imgB))
     difference = np.hstack((imgThresh, x, imgDiff))
     cv2.imshow("Difference", difference)
-    cv2.imshow("Source", source)
+    cv2.imshow("Source + Replaced", source)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
