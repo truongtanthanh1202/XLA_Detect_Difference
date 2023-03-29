@@ -12,6 +12,7 @@ def edgePreprocess(img):
     kernel_o = np.ones((1, 1), np.uint8)
     Temp = cv2.morphologyEx(Temp, cv2.MORPH_CLOSE, kernel_c)
     Temp = cv2.morphologyEx(Temp, cv2.MORPH_OPEN, kernel_o)
+    cv2.imwrite('./Difference/edgePreprocess.jpg', Temp)
     return Temp
 
 #calculate the average color in an area of an object
@@ -34,36 +35,35 @@ def CreateImage(path, level, limit):
     test = img.copy()
 
     thresh = edgePreprocess(img)
-    contour_info = [(c, cv2.contourArea(c)) for c in cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)[0]]
-    print('Number of contours =  ' + str(len(contour_info)))
+    borderList = [(c, cv2.contourArea(c)) for c in cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)[0]]
+    print('Number of border Items =  ' + str(len(borderList)))
 
-    area = set([contour[1] for contour in contour_info])
+    area = set([contour[1] for contour in borderList])
     area = sorted(area)
     # print('List area: ' + str(area))
 
     #Define parameters for game level
-    lenght = len(area)
+    size = len(area)
     if level == 'easy':
-        minn, maxx = area[int(lenght / 2) + int(lenght / 3) + 1], area[lenght - 1]
+        minRange, maxRange = area[size // 2 + size // 3 + 1], area[size - 1]
     elif level == 'medium':
-        minn, maxx = area[int(lenght / 2) + 1], area[int(lenght / 2) + int(lenght / 3)]
+        minRange, maxRange = area[size // 2 + 1], area[size // 2 + size // 3]
     elif level == 'hard':
-        minn, maxx = area[0], area[int(lenght / 2)]
+        minRange, maxRange = area[0], area[size // 2]
 
-    Limit = limit
-    print("Min - Max: " + str(minn) + " " + str(maxx))
-    print("Limit: " + str(Limit))
+    numOfDiff = limit
     ####
 
     def myFunc(e):
         return e[1]
 
-    contour_info.sort(reverse=True, key=myFunc)
-    for contour in contour_info:
-        area = contour[1]
+    #Randomly fill color in objects as required by level
+    borderList.sort(reverse=True, key=myFunc)
+    for boderItem in borderList:
+        area = boderItem[1]
         al = np.random.randint(1, 100)
-        if area >= minn and area <= maxx and al % 3 == 0:
-            x, y, w, h = cv2.boundingRect(contour[0])
+        if minRange <= area <= maxRange and al % 3 == 0:
+            x, y, w, h = cv2.boundingRect(boderItem[0])
             R, G, B = colorArea(x, y, x+w, y+h, test)
             # print(str(R) + " " + str(G) + " " + str(B))
 
@@ -74,9 +74,9 @@ def CreateImage(path, level, limit):
             elif level == 'hard':
                 new_color = (int(R), int(G), int(B))
 
-            cv2.fillPoly(img, [contour[0]], new_color)
-            Limit = Limit - 1
-            if (Limit == 0):
+            cv2.fillPoly(img, [boderItem[0]], new_color)
+            numOfDiff = numOfDiff - 1
+            if (numOfDiff == 0):
                 break
 
     # Export ouput image
