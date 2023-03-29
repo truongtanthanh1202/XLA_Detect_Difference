@@ -50,7 +50,7 @@ def CreateImage(path, level, limit):
         minRange, maxRange = area[size // 2 + 1], area[size // 2 + size // 3]
     elif level == 'hard':
         minRange, maxRange = area[0], area[size // 2]
-
+    maxRange = min(maxRange, 30000)
     numOfDiff = limit
     ####
 
@@ -65,7 +65,7 @@ def CreateImage(path, level, limit):
         if minRange <= area <= maxRange and al % 3 == 0:
             x, y, w, h = cv2.boundingRect(boderItem[0])
             R, G, B = colorArea(x, y, x+w, y+h, test)
-            # print(str(R) + " " + str(G) + " " + str(B))
+            print(str(R) + " " + str(G) + " " + str(B))
 
             if level == 'easy':
                 new_color = (np.random.uniform(0, 255), np.random.uniform(0, 255), np.random.uniform(0, 255))
