@@ -5,6 +5,7 @@ import argparse
 def edgePreprocess(img):
     imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     Temp = cv2.Canny(imgray, 150, 200)
+    #normalize by smoothing and erosion + dilation
     Temp = cv2.dilate(Temp, None)
     Temp = cv2.erode(Temp, None)
     kernel_c = np.ones((5, 5), np.uint8)
@@ -13,6 +14,21 @@ def edgePreprocess(img):
     Temp = cv2.morphologyEx(Temp, cv2.MORPH_OPEN, kernel_o)
     return Temp
 
+#calculate the average color in an area of an object
+def colorArea(x1,y1,x2,y2, img):
+    # Extract the pixels within the rectangular area
+    roi = img[y1:y2, x1:x2]
+
+    # Calculate the mean value of the pixel values for each color channel (R, G, B)
+    mean_color = np.mean(roi, axis=(0, 1)).astype(int)
+
+    # Print and return the mean color value as a tuple (R, G, B)
+    # print(f"Mean color value: {mean_color}")
+    mean_color = tuple(mean_color)
+    return mean_color
+
+
+#create a new image according to the set parameters
 def CreateImage(path, level, limit):
     img = cv2.imread(path)
     test = img.copy()
@@ -23,11 +39,10 @@ def CreateImage(path, level, limit):
 
     area = set([contour[1] for contour in contour_info])
     area = sorted(area)
-    print('List area: ' + str(area))
+    # print('List area: ' + str(area))
 
-    ####must format
+    #Define parameters for game level
     lenght = len(area)
-
     if level == 'easy':
         minn, maxx = area[int(lenght / 2) + int(lenght / 3) + 1], area[lenght - 1]
     elif level == 'medium':
@@ -49,7 +64,16 @@ def CreateImage(path, level, limit):
         al = np.random.randint(1, 100)
         if area >= minn and area <= maxx and al % 3 == 0:
             x, y, w, h = cv2.boundingRect(contour[0])
-            new_color = (np.random.uniform(0, 255), np.random.uniform(0, 255), np.random.uniform(0, 255));
+            R, G, B = colorArea(x, y, x+w, y+h, test)
+            # print(str(R) + " " + str(G) + " " + str(B))
+
+            if level == 'easy':
+                new_color = (np.random.uniform(0, 255), np.random.uniform(0, 255), np.random.uniform(0, 255))
+            elif level == 'medium':
+                new_color = (int(R), int(G), int(B))
+            elif level == 'hard':
+                new_color = (int(R), int(G), int(B))
+
             cv2.fillPoly(img, [contour[0]], new_color)
             Limit = Limit - 1
             if (Limit == 0):
